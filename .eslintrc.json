@@ -1,0 +1,13 @@
+{
+  "ignorePatterns": ["next-env.d.ts", ".next/", "node_modules/"],
+  "extends": ["next/core-web-vitals", "plugin:@typescript-eslint/recommended"],
+  "parser": "@typescript-eslint/parser",
+  "plugins": ["@typescript-eslint"],
+  "rules": {
+    "@typescript-eslint/no-explicit-any": "warn",
+    "@typescript-eslint/explicit-module-boundary-types": "off",
+    "react-hooks/exhaustive-deps": "warn",
+    "prefer-const": "warn",
+    "no-console": "off"
+  }
+}
