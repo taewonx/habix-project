@@ -18,6 +18,11 @@ CREATE POLICY "Users can update own profile"
   USING (auth.uid() = id)
   WITH CHECK (auth.uid() = id);
 
+-- 로그인/회원가입 직후 클라이언트(ensureUserProfile)가 자신의 행만 INSERT 가능
+CREATE POLICY "Users can insert own profile"
+  ON profiles FOR INSERT
+  WITH CHECK (auth.uid() = id);
+
 -- Trainer: 자신의 회원 목록 조회
 -- (trainer_member_links를 통해 trainer_id = auth.uid()인 member 프로필 조회)
 CREATE POLICY "Trainers can view their members' profiles"
@@ -68,9 +73,8 @@ CREATE POLICY "Members can view their assigned diet guides"
   USING (
     EXISTS (
       SELECT 1 FROM trainer_member_links
-      WHERE link_id = trainer_member_links.id
+      WHERE trainer_member_links.id = diet_guides.link_id
         AND member_id = auth.uid()
-        AND trainer_member_links.link_id = diet_guides.link_id
     )
   );
 
@@ -82,7 +86,7 @@ CREATE POLICY "Trainers can create diet guides"
     AND EXISTS (
       SELECT 1 FROM trainer_member_links
       WHERE trainer_id = auth.uid()
-        AND trainer_member_links.id = link_id
+        AND trainer_member_links.id = diet_guides.link_id
     )
   );
 
@@ -107,7 +111,7 @@ CREATE POLICY "Users can view diet guide meals"
           created_by = auth.uid()
           OR EXISTS (
             SELECT 1 FROM trainer_member_links
-            WHERE link_id = diet_guides.link_id
+            WHERE trainer_member_links.id = diet_guides.link_id
               AND member_id = auth.uid()
           )
         )
@@ -216,7 +220,7 @@ CREATE POLICY "Members can view their programs"
   USING (
     EXISTS (
       SELECT 1 FROM trainer_member_links
-      WHERE link_id = workout_programs.link_id
+      WHERE trainer_member_links.id = workout_programs.link_id
         AND member_id = auth.uid()
         AND is_active = TRUE
     )
@@ -230,7 +234,7 @@ CREATE POLICY "Trainers can create programs"
     AND EXISTS (
       SELECT 1 FROM trainer_member_links
       WHERE trainer_id = auth.uid()
-        AND trainer_member_links.id = link_id
+        AND trainer_member_links.id = workout_programs.link_id
     )
   );
 
@@ -249,7 +253,7 @@ CREATE POLICY "Users can view workout sessions"
           created_by = auth.uid()
           OR EXISTS (
             SELECT 1 FROM trainer_member_links
-            WHERE link_id = workout_programs.link_id
+            WHERE trainer_member_links.id = workout_programs.link_id
               AND member_id = auth.uid()
               AND is_active = TRUE
           )
@@ -273,7 +277,7 @@ CREATE POLICY "Users can view workout exercises"
           workout_programs.created_by = auth.uid()
           OR EXISTS (
             SELECT 1 FROM trainer_member_links
-            WHERE link_id = workout_programs.link_id
+            WHERE trainer_member_links.id = workout_programs.link_id
               AND member_id = auth.uid()
               AND is_active = TRUE
           )
@@ -296,7 +300,7 @@ CREATE POLICY "Members can create workout logs"
     member_id = auth.uid()
     AND EXISTS (
       SELECT 1 FROM workout_exercises
-      JOIN workout_sessions ON workout_sessions.id = exercise_id
+      JOIN workout_sessions ON workout_sessions.id = workout_exercises.session_id
       JOIN workout_programs ON workout_programs.id = workout_sessions.workout_program_id
       JOIN trainer_member_links ON trainer_member_links.id = workout_programs.link_id
       WHERE workout_exercises.id = exercise_id

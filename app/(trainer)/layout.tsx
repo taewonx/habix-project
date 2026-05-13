@@ -58,9 +58,21 @@ export default function TrainerLayout({ children }: { children: ReactNode }) {
     };
   }, [router]);
 
-  const signOut = async () => {
-    await supabase.auth.signOut();
-    router.replace('/login');
+  const handleSignOut = () => {
+    void (async () => {
+      try {
+        await Promise.race([
+          supabase.auth.signOut(),
+          new Promise<void>((resolve) => {
+            setTimeout(resolve, 2500);
+          }),
+        ]);
+      } catch {
+        /* signOut 실패해도 로컬 세션은 정리 시도됨; 아래에서 이동 */
+      } finally {
+        window.location.assign('/login');
+      }
+    })();
   };
 
   if (!ready) {
@@ -99,7 +111,7 @@ export default function TrainerLayout({ children }: { children: ReactNode }) {
           </div>
           <div className="flex items-center gap-2">
             {userEmail && <span className="hidden sm:inline text-xs text-muted-foreground">{userEmail}</span>}
-            <Button variant="outline" size="sm" onClick={signOut}>
+            <Button type="button" variant="outline" size="sm" onClick={handleSignOut}>
               로그아웃
             </Button>
           </div>
