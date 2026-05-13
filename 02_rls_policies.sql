@@ -56,6 +56,16 @@ CREATE POLICY "Trainers can update their member links"
   USING (trainer_id = auth.uid())
   WITH CHECK (trainer_id = auth.uid());
 
+-- 트레이너: 본인을 trainer_id로 하는 연결 행만 생성
+-- (profiles.role 검사는 넣지 않음: 링크 생성 전에는 트레이너가 회원 profiles 행을
+--  SELECT할 수 없어 EXISTS 서브쿼리가 RLS에 막혀 항상 실패하는 닭·달걀 문제가 난다)
+CREATE POLICY "Trainers can create member links"
+  ON trainer_member_links FOR INSERT
+  WITH CHECK (
+    trainer_id = auth.uid()
+    AND trainer_id <> member_id
+  );
+
 -- ============================================
 -- 3. DIET_GUIDES RLS Policies
 -- ============================================

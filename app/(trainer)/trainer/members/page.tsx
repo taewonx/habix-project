@@ -118,8 +118,10 @@ export default function TrainerMembersPage() {
               value={memberId}
               onChange={(e) => setMemberId(e.target.value)}
             />
-            <Button onClick={connectMember}>연결</Button>
-            <Button variant="outline" onClick={load}>
+            <Button type="button" onClick={connectMember}>
+              연결
+            </Button>
+            <Button type="button" variant="outline" onClick={load}>
               새로고침
             </Button>
           </div>
